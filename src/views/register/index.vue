@@ -131,6 +131,8 @@
         showRegister: false,
         nodeEnv: process.env.NODE_ENV,
         title: this.$baseTitle,
+        time: 60, // 倒计时
+        interval: null,
         form: {},
         registerRules: {
           username: [
@@ -154,27 +156,41 @@
         passwordType: 'password',
       }
     },
+    watch: {
+      'form.phone': {
+        handler(val) {
+          if (!isPhone(val)) {
+            this.isGetphone = true
+          } else {
+            this.isGetphone = false
+          }
+        },
+        immediate: true,
+        deep: true,
+      },
+    },
     created() {
       document.body.style.overflow = 'hidden'
     },
     beforeDestroy() {
       document.body.style.overflow = 'auto'
       this.getPhoneIntval = null
-      clearInterval(this.getPhoneIntval)
+      clearInterval(this.interval)
     },
     methods: {
       getPhoneCode() {
         this.isGetphone = true
-        let n = 60
-        this.getPhoneIntval = setInterval(() => {
-          if (n > 0) {
-            n--
-            this.phoneCode = '重新获取(' + n + 's)'
-          } else {
+        this.interval = setInterval(() => {
+          let time = this.time
+          this.phoneCode = '重新获取(' + time + 's)'
+          this.time--
+          this.isGetphone = true
+          if (time < 1) {
+            this.time = 10
             this.getPhoneIntval = null
-            clearInterval(this.getPhoneIntval)
-            this.phoneCode = '获取验证码'
+            this.phoneCode = '重新发送'
             this.isGetphone = false
+            clearInterval(this.interval)
           }
         }, 1000)
       },
